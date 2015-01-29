@@ -1,5 +1,5 @@
-CXXFLAGS := -Wall -Werror -g -std=c++11
-LDFLAGS :=
+CXXFLAGS := -Wall -Werror -O3 -std=c++11
+LDFLAGS := -lprimesieve
 
 EXECUTABLE = bf.out
 

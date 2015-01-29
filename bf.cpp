@@ -34,11 +34,25 @@ bool hasDivisor(int x, vector<bool> &v) {
 
 void simGame(int x) {
   // Game starts at index 1
+  vector<int> primes;
+  primesieve::generate_primes(20, &primes);
   vector<bool> taken(x+1);
   long long playerScore = 0, computerScore = 0;
-  for (size_t i = floor((x/2) + 1); i < taken.size(); ++i) {
-    if (hasDivisor(i, taken))
-      claimNumber(i, taken, playerScore, computerScore);
+  for (int j = primes.size()-1; j >= 0; --j) {
+    for (size_t i = x/primes[j]; i < taken.size(); i += primes[j]) {
+      if (i%primes[j] != 0)
+        i += primes[j] - (i%primes[j]);
+      assert(i % primes[j] == 0);
+      bool newNum = false;
+      for (int k = 0; k < j; ++k) {
+        if (i % primes[k] == 0) {
+          newNum = true;
+          break;
+        }
+      }
+      if (!newNum && hasDivisor(i, taken))
+        claimNumber(i, taken, playerScore, computerScore);
+    }
   }
   cout << "Sz: " << x << "\t Ratio: " << (float)playerScore/(x*(x+1)/2) << "\t PlayerScore: " << playerScore << "\t ComputerScore: " << computerScore << endl;
 }
