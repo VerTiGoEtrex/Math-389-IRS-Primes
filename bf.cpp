@@ -32,16 +32,19 @@ bool hasDivisor(int x, vector<bool> &v) {
   return false;
 }
 
-void simGame(int x) {
+void simGame(int x, vector<int> &moves) {
   // Game starts at index 1
   vector<int> primes;
-  primesieve::generate_primes(20, &primes);
+  primesieve::generate_primes(x, &primes);
   vector<bool> taken(x+1);
   long long playerScore = 0, computerScore = 0;
   for (int j = primes.size()-1; j >= 0; --j) {
-    for (size_t i = x/primes[j]; i < taken.size(); i += primes[j]) {
-      if (i%primes[j] != 0)
+    for (size_t i = x/2; i < taken.size(); i += primes[j]) {
+      if (i%primes[j] != 0){
         i += primes[j] - (i%primes[j]);
+        if (i >= taken.size())
+          break;
+      }
       assert(i % primes[j] == 0);
       bool newNum = false;
       for (int k = 0; k < j; ++k) {
@@ -50,8 +53,10 @@ void simGame(int x) {
           break;
         }
       }
-      if (!newNum && hasDivisor(i, taken))
+      if (!newNum && hasDivisor(i, taken)) {
         claimNumber(i, taken, playerScore, computerScore);
+        moves.push_back(i);
+      }
     }
   }
   cout << "Sz: " << x << "\t Ratio: " << (float)playerScore/(x*(x+1)/2) << "\t PlayerScore: " << playerScore << "\t ComputerScore: " << computerScore << endl;
@@ -76,7 +81,12 @@ int main(int argc, char *argv[])
   assert(max >= min);
 
   for (int i = min; i <= max; ++i) {
-    simGame(i);
+    vector<int> moves;
+    simGame(i, moves);
+//    cout << "MOVES:\n";
+//    for (auto &m : moves)
+//      cout << m << " ";
+//    cout << endl;
   }
 
   // Print the time elapsed
