@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <cassert>
 #include <primesieve.hpp>
+#include <algorithm>
 
 using namespace std;
 
@@ -14,19 +15,19 @@ double getWallTime()
   return static_cast<double>(std::clock()) / CLOCKS_PER_SEC;
 }
 
-void claimNumber(int x, vector<bool> &v, long long &playerScore, long long &computerScore) {
+void claimNumber(int x, vector<bool> &v, long long &playerScore) {
+  assert((unsigned int)x < v.size());
   v[x] = true;
   playerScore += x;
   for (int i = 1; i <= x/2; ++i) {
     if (x%i == 0 && !v[i]) {
       v[i] = true;
-      computerScore += i;
     }
   }
 }
 
-bool hasDivisor(int x, vector<bool> &v) {
-  for (int i = 1; i <= x/2; ++i)
+bool hasDivisor(int x, vector<bool> &v, int lb) {
+  for (int i = max(lb, 1); i <= x/2; ++i)
     if (x%i == 0 && !v[i])
       return true;
   return false;
@@ -35,16 +36,17 @@ bool hasDivisor(int x, vector<bool> &v) {
 void simGame(int x, vector<int> &moves) {
   // Game starts at index 1
   vector<int> primes;
-  primesieve::generate_primes(x, &primes);
+  primesieve::generate_primes(7, &primes);
   vector<bool> taken(x+1);
   long long playerScore = 0, computerScore = 0;
   for (int j = primes.size()-1; j >= 0; --j) {
-    for (size_t i = x/2; i < taken.size(); i += primes[j]) {
-      if (i%primes[j] != 0){
-        i += primes[j] - (i%primes[j]);
-        if (i >= taken.size())
-          break;
-      }
+    size_t i = x/2 + 1;
+    if (i%primes[j] != 0){
+      i += primes[j] - (i%primes[j]);
+      if (i >= taken.size())
+        continue;
+    }
+    for (; i < taken.size(); i += primes[j]) {
       assert(i % primes[j] == 0);
       bool newNum = false;
       for (int k = 0; k < j; ++k) {
@@ -53,13 +55,23 @@ void simGame(int x, vector<int> &moves) {
           break;
         }
       }
-      if (!newNum && hasDivisor(i, taken)) {
-        claimNumber(i, taken, playerScore, computerScore);
+      if (!newNum && hasDivisor(i, taken, taken.size()/(2*primes[j]))) {
+        claimNumber(i, taken, playerScore);
         moves.push_back(i);
       }
     }
+//    int numThings = 0;
+//    auto begin = taken.begin();
+//    begin += taken.size();
+//    auto end = taken.begin();
+//    end += taken.size() / 3;
+//    for_each(begin, end, [&](bool lel) { if (lel) ++numThings;});
+//    cout << numThings << endl;
   }
-  cout << "Sz: " << x << "\t Ratio: " << (float)playerScore/(x*(x+1)/2) << "\t PlayerScore: " << playerScore << "\t ComputerScore: " << computerScore << endl;
+  auto totScore = (x*(x+1))/2;
+  computerScore = totScore - playerScore;
+  cout << "Sz: " << x << "\t Ratio: " << (float)playerScore/totScore << "\t PlayerScore: " << playerScore << "\t ComputerScore: " << computerScore << endl;
+//  cout << x << ", " << playerScore << ", " << computerScore << ", " << totScore << endl;
 }
 
 int main(int argc, char *argv[])
